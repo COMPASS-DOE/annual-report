@@ -62,6 +62,7 @@ authors %>%
     authors
 
 # Count how many times people are on papers together
+message("Counting coauthorships...")
 authors %>%
     rowwise() %>%
     mutate(author_A = if_else(first_author < author, first_author, author),
@@ -72,6 +73,7 @@ authors %>%
     author_pairings
 
 # Create colors based on institutions
+message("Making color scheme...")
 read_csv("institutions.csv", col_types = "ccc") %>%
     arrange(Name_clean) %>%
     replace_na(list(Institution = "")) %>%
@@ -82,11 +84,13 @@ cols <- turbo(length(unique(institutions$Institution)))
 names(cols) <- unique(institutions$Institution)
 cols[""] <- "#D3D3D3" # light gray
 institutions$color <- cols[institutions$Inst_n]
-# ...and assign to vertices
-vnames <- V(g)$name
 
+# Create the graph
+message("Creating graph...")
 library(igraph)
 g <- graph_from_data_frame(author_pairings, directed = FALSE)
+# ...and assign attributes
+vnames <- V(g)$name
 V(g)$color <- institutions$color[match(vnames, institutions$Name_clean)]
 V(g)$size <- 5
 V(g)$label.degree = -pi/2
